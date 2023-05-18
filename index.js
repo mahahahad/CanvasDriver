@@ -4,19 +4,6 @@ canvasEl.width = innerWidth;
 
 let darkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
-/*
-Car is a thing that has 4 tires
-  Its coordinates are based on its center
-  Everything works with respect to that
-
-The front 2 tires can steer to change their direction
-  Direction changes depending on how long the direction key has been pressed for
-  These 2 tires can exist together as they will be linked
-The back 2 tires remain constant at all times
-  Honestly, only present to give the illusion of an actual car
-  These can also exist together as they are also linked
-*/
-
 class Car {
   constructor(canvasContext) {
     this.c = canvasContext;
@@ -25,6 +12,7 @@ class Car {
     this.carWidth = 70;
     this.tireWidth = 19;
     this.tireLength = 38;
+    this.rotationAngle = 1;
 
     // Start off at the center of the screen
     this.x = innerWidth / 2;
@@ -55,6 +43,15 @@ class Car {
       this.tireLength
     );
 
+    let xPos = this.x + this.carWidth / 2;
+    let yPos = this.y - this.carLength / 2;
+    let tireHorizontalCenter = xPos + this.tireWidth / 2;
+    let tireVerticalCenter = yPos + this.tireLength / 2;
+
+    this.c.translate(tireHorizontalCenter, tireVerticalCenter);
+    this.c.rotate(Math.PI / this.rotationAngle);
+    this.c.translate(-tireHorizontalCenter, -tireVerticalCenter);
+
     // Top Right Tire
     this.c.rect(
       this.x + this.carWidth / 2,
@@ -63,35 +60,28 @@ class Car {
       this.tireLength
     );
 
-    // this.c.translate(this.x - this.carWidth / 2, this.y - this.carHeight / 2);
-    // this.c.rotate(Math.PI / 2);
-    // this.c.translate(
-    //   (this.x - this.carWidth / 2) * -1,
-    //   (this.y - this.carHeight / 2) * -1
-    // );
+    this.c.translate(tireHorizontalCenter, tireVerticalCenter);
+    this.c.rotate(Math.PI / -this.rotationAngle);
+    this.c.translate(-tireHorizontalCenter, -tireVerticalCenter);
 
-    // Top Left Tire
-    // let corner = this.x - this.carWidth / 2;
-    // this.c.translate(corner + tireWidth / 2, 24);
-    // this.c.rotate(Math.PI / 1.25);
-    // this.c.translate(-15, -24);
-    // this.c.rect(
-    //   this.x - this.carWidth / 2,
-    //   this.y - this.carLength / 2,
-    //   this.tireWidth,
-    //   this.tireLength
-    // );
+    xPos = this.x - this.carWidth / 2;
+    yPos = this.y - this.carLength / 2;
+    tireHorizontalCenter = xPos + this.tireWidth / 2;
+    tireVerticalCenter = yPos + this.tireLength / 2;
 
-    let xPos = this.x - this.carWidth / 2;
-    let yPos = this.y - this.carLength / 2;
-    this.c.translate(xPos + this.tireWidth / 2, yPos + this.tireLength / 2);
-    this.c.rotate(Math.PI / 1.25);
-    this.c.translate(
-      (xPos + this.tireWidth / 2) * -1,
-      (yPos + this.tireLength / 2) * -1
-    );
+    // Rotate the tire
+    this.c.translate(tireHorizontalCenter, tireVerticalCenter);
+    this.c.rotate(Math.PI / this.rotationAngle);
+    this.c.translate(-tireHorizontalCenter, -tireVerticalCenter);
+
+    // Draw the tire
     this.c.rect(xPos, yPos, this.tireWidth, this.tireLength);
     this.c.stroke();
+
+    // Cancel out the rotation for the next redraw
+    this.c.translate(tireHorizontalCenter, tireVerticalCenter);
+    this.c.rotate(Math.PI / -this.rotationAngle);
+    this.c.translate(-tireHorizontalCenter, -tireVerticalCenter);
   }
 
   handle() {
@@ -103,7 +93,10 @@ class Car {
           // console.log("Move Forwards");
           break;
         case "a":
-          this.x -= distance;
+          // this.x -= distance;
+          if (this.rotationAngle > 1.25) return;
+          if (this.rotationAngle == -1) this.rotationAngle = 1;
+          this.rotationAngle += 0.1;
           // console.log("Move Left");
           break;
         case "s":
@@ -111,7 +104,10 @@ class Car {
           // console.log("Move Backwards");
           break;
         case "d":
-          this.x += distance;
+          // this.x += distance;
+          if (this.rotationAngle < -1.25) return;
+          if (this.rotationAngle == 1) this.rotationAngle = -1;
+          this.rotationAngle -= 0.1;
           // console.log("Move Right");
           break;
         default:
