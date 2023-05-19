@@ -96,10 +96,11 @@ class Car {
     this.c.rotate(-(this.rotationAngle * Math.PI) / 180);
     this.c.translate(-tireHorizontalCenter, -tireVerticalCenter);
 
+    // Bottom tires axis
+    // Will always be straight because these will never rotate
     tireHorizontalCenter = this.x + this.carWidth / 2;
     tireVerticalCenter = this.y + this.carLength / 2;
 
-    // Bottom tires axis
     this.c.beginPath();
     this.c.moveTo(tireHorizontalCenter, tireVerticalCenter);
     this.c.lineTo(0, tireVerticalCenter);
@@ -112,15 +113,8 @@ class Car {
     tireVerticalCenter = this.y - this.carLength / 2;
 
     // Right
-    // this.c.beginPath();
-    // this.c.moveTo(tireHorizontalCenter, tireVerticalCenter);
-    // this.c.lineTo(0, tireVerticalCenter);
-    // this.c.stroke();
-
-    // Left
-    tireHorizontalCenter = this.x - this.carWidth / 2;
+    tireHorizontalCenter = this.x + this.carWidth / 2;
     tireVerticalCenter = this.y - this.carLength / 2;
-    let bottomTireMidpoint = this.y + this.carLength / 2 + this.tireLength / 2;
 
     if (this.rotationAngle == 0) {
       this.c.beginPath();
@@ -130,23 +124,33 @@ class Car {
     } else {
       this.c.beginPath();
       this.c.moveTo(tireHorizontalCenter, tireVerticalCenter);
-      // this.c.arc(tireHorizontalCenter, tireVerticalCenter, 10, 0, 360);
       this.c.lineTo(
         tireHorizontalCenter -
           this.carLength / Math.tan((Math.PI * -this.rotationAngle) / 180),
         tireVerticalCenter + this.carLength
       );
       this.c.stroke();
-      // alert(this.rotationAngle);
     }
-    // this.c.beginPath();
-    // this.c.moveTo(tireHorizontalCenter, tireVerticalCenter);
-    // this.c.lineTo(
-    //   bottomTireMidpoint / Math.tan(Math.PI / this.rotationAngle),
-    //   bottomTireMidpoint
-    // );
-    // this.c.stroke();
-    // console.log(this.carLength, this.rotationAngle);
+
+    // Left
+    tireHorizontalCenter = this.x - this.carWidth / 2;
+    tireVerticalCenter = this.y - this.carLength / 2;
+
+    if (this.rotationAngle == 0) {
+      this.c.beginPath();
+      this.c.moveTo(tireHorizontalCenter, tireVerticalCenter);
+      this.c.lineTo(0, tireVerticalCenter);
+      this.c.stroke();
+    } else {
+      this.c.beginPath();
+      this.c.moveTo(tireHorizontalCenter, tireVerticalCenter);
+      this.c.lineTo(
+        tireHorizontalCenter -
+          this.carLength / Math.tan((Math.PI * -this.rotationAngle) / 180),
+        tireVerticalCenter + this.carLength
+      );
+      this.c.stroke();
+    }
   }
 
   handle() {
