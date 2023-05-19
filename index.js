@@ -12,7 +12,7 @@ class Car {
     this.carWidth = 70;
     this.tireWidth = 19;
     this.tireLength = 38;
-    this.rotationAngle = -45;
+    this.rotationAngle = 0;
 
     // Start off at the center of the screen
     this.x = innerWidth / 2;
@@ -23,21 +23,17 @@ class Car {
   }
 
   render() {
+    this.c.lineWidth = 1;
+    this.c.setLineDash([5, 10]);
     // Clear screen before every redraw
     this.c.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
     // Draw arc at center of the screen for reference
     this.c.beginPath();
     this.c.arc(this.x, this.y, 5, 0, 360);
-    this.c.stroke();
+    this.c.fill();
 
-    // Vertical car center line
-    this.c.beginPath();
-    this.c.moveTo(this.x, this.y - this.carLength / 2);
-    this.c.lineTo(this.x, this.y + this.carLength / 2);
-    this.c.stroke();
-
-    // Bottom Right Tire
+    // Bottom right tire
     this.c.beginPath();
     this.c.rect(
       this.x + this.carWidth / 2 - this.tireWidth / 2,
@@ -46,7 +42,7 @@ class Car {
       this.tireLength
     );
 
-    // Bottom Left Tire
+    // Bottom left tire
     this.c.rect(
       this.x - this.carWidth / 2 - this.tireWidth / 2,
       this.y + this.carLength / 2 - this.tireLength / 2,
@@ -89,7 +85,7 @@ class Car {
 
     // Draw the tire
     this.c.rect(xPos, yPos, this.tireWidth, this.tireLength);
-    this.c.stroke();
+    this.c.fill();
 
     // Cancel out the rotation for the next redraw
     this.c.translate(tireHorizontalCenter, tireVerticalCenter);
@@ -102,26 +98,30 @@ class Car {
     tireVerticalCenter = this.y + this.carLength / 2;
 
     this.c.beginPath();
-    this.c.moveTo(tireHorizontalCenter, tireVerticalCenter);
-    this.c.lineTo(0, tireVerticalCenter);
+    this.c.moveTo(0, tireVerticalCenter);
+    this.c.lineTo(innerWidth, tireVerticalCenter);
     this.c.stroke();
 
     // Top tires axis
     // Based on the rotation of the tire
     // Will always be perpendicular to it
-    tireHorizontalCenter = this.x + this.carWidth / 2;
-    tireVerticalCenter = this.y - this.carLength / 2;
+    if (this.rotationAngle != 0) {
+      // Right
+      tireHorizontalCenter = this.x + this.carWidth / 2;
+      tireVerticalCenter = this.y - this.carLength / 2;
 
-    // Right
-    tireHorizontalCenter = this.x + this.carWidth / 2;
-    tireVerticalCenter = this.y - this.carLength / 2;
-
-    if (this.rotationAngle == 0) {
       this.c.beginPath();
       this.c.moveTo(tireHorizontalCenter, tireVerticalCenter);
-      this.c.lineTo(0, tireVerticalCenter);
+      this.c.lineTo(
+        tireHorizontalCenter -
+          this.carLength / Math.tan((Math.PI * -this.rotationAngle) / 180),
+        tireVerticalCenter + this.carLength
+      );
       this.c.stroke();
-    } else {
+      // Left
+      tireHorizontalCenter = this.x - this.carWidth / 2;
+      tireVerticalCenter = this.y - this.carLength / 2;
+
       this.c.beginPath();
       this.c.moveTo(tireHorizontalCenter, tireVerticalCenter);
       this.c.lineTo(
@@ -132,25 +132,26 @@ class Car {
       this.c.stroke();
     }
 
-    // Left
-    tireHorizontalCenter = this.x - this.carWidth / 2;
-    tireVerticalCenter = this.y - this.carLength / 2;
+    // Vertical car center line
+    this.c.beginPath();
+    this.c.moveTo(this.x, this.y - this.carLength / 2);
+    this.c.lineTo(this.x, this.y + this.carLength / 2);
+    this.c.setLineDash([0, 0]);
+    this.c.lineWidth = 2;
+    this.c.stroke();
 
-    if (this.rotationAngle == 0) {
-      this.c.beginPath();
-      this.c.moveTo(tireHorizontalCenter, tireVerticalCenter);
-      this.c.lineTo(0, tireVerticalCenter);
-      this.c.stroke();
-    } else {
-      this.c.beginPath();
-      this.c.moveTo(tireHorizontalCenter, tireVerticalCenter);
-      this.c.lineTo(
-        tireHorizontalCenter -
-          this.carLength / Math.tan((Math.PI * -this.rotationAngle) / 180),
-        tireVerticalCenter + this.carLength
-      );
-      this.c.stroke();
-    }
+    // Bottom axis
+    this.c.beginPath();
+    this.c.moveTo(this.x - this.carWidth / 2, this.y + this.carLength / 2);
+    this.c.lineTo(this.x + this.carWidth / 2, this.y + this.carLength / 2);
+    this.c.stroke();
+
+    // Top axis
+    this.c.beginPath();
+    this.c.moveTo(this.x - this.carWidth / 2, this.y - this.carLength / 2);
+    this.c.lineTo(this.x + this.carWidth / 2, this.y - this.carLength / 2);
+    this.c.stroke();
+    // this.c.setLineDash([5, 10]);
   }
 
   handle() {
@@ -199,6 +200,5 @@ if (canvasEl.getContext) {
     c.fillStyle = "Black";
     c.strokeStyle = "Black";
   }
-
   let car = new Car(c);
 }
