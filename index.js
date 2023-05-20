@@ -4,6 +4,14 @@ canvasEl.width = innerWidth;
 
 let darkMode = window.matchMedia("(prefers-color-scheme: dark)").matches;
 
+function degToRad(degrees) {
+  return (Math.PI * degrees) / 180;
+}
+
+function radToDeg(radians) {
+  return (180 * radians) / Math.PI;
+}
+
 class Car {
   constructor(canvasContext) {
     this.c = canvasContext;
@@ -12,19 +20,41 @@ class Car {
     this.carWidth = 70;
     this.tireWidth = 19;
     this.tireLength = 38;
-    this.rotationAngle = 0;
-
+    this.rotationAngleLeft = 0;
+    this.rotationAngleRight = 0;
     // Start off at the center of the screen
     this.x = innerWidth / 2;
     this.y = innerHeight / 2;
-
+    this.turningPoint = { x: 0, y: 0 };
+    this.updateLocations();
     this.render();
     this.handle();
   }
 
+  updateLocations() {
+    this.tireTopLeft = {
+      x: this.x - this.carWidth / 2,
+      y: this.y - this.carLength / 2,
+    };
+    this.tireTopRight = {
+      x: this.x + this.carWidth / 2,
+      y: this.y - this.carLength / 2,
+    };
+    this.tireBottomLeft = {
+      x: this.x - this.carWidth / 2,
+      y: this.y + this.carLength / 2,
+    };
+    this.tireBottomRight = {
+      x: this.x + this.carWidth / 2,
+      y: this.y + this.carLength / 2,
+    };
+  }
+
   render() {
+    // Reset styles
     this.c.lineWidth = 1;
     this.c.setLineDash([5, 10]);
+
     // Clear screen before every redraw
     this.c.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
@@ -36,16 +66,16 @@ class Car {
     // Bottom right tire
     this.c.beginPath();
     this.c.rect(
-      this.x + this.carWidth / 2 - this.tireWidth / 2,
-      this.y + this.carLength / 2 - this.tireLength / 2,
+      this.tireBottomRight.x - this.tireWidth / 2,
+      this.tireBottomRight.y - this.tireLength / 2,
       this.tireWidth,
       this.tireLength
     );
 
     // Bottom left tire
     this.c.rect(
-      this.x - this.carWidth / 2 - this.tireWidth / 2,
-      this.y + this.carLength / 2 - this.tireLength / 2,
+      this.tireBottomLeft.x - this.tireWidth / 2,
+      this.tireBottomLeft.y - this.tireLength / 2,
       this.tireWidth,
       this.tireLength
     );
@@ -55,22 +85,21 @@ class Car {
     let tireHorizontalCenter = xPos;
     let tireVerticalCenter = yPos;
 
+    // Top right tire
     // Rotate the tire
     this.c.translate(tireHorizontalCenter, tireVerticalCenter);
-    this.c.rotate((this.rotationAngle * Math.PI) / 180);
+    this.c.rotate(degToRad(this.rotationAngleRight));
     this.c.translate(-tireHorizontalCenter, -tireVerticalCenter);
-
-    // Top Right Tire
     this.c.rect(
-      this.x + this.carWidth / 2 - this.tireWidth / 2,
-      this.y - this.carLength / 2 - this.tireLength / 2,
+      this.tireTopRight.x - this.tireWidth / 2,
+      this.tireTopRight.y - this.tireLength / 2,
       this.tireWidth,
       this.tireLength
     );
 
     // Cancel out the rotation for the next redraw
     this.c.translate(tireHorizontalCenter, tireVerticalCenter);
-    this.c.rotate(-(this.rotationAngle * Math.PI) / 180);
+    this.c.rotate(-degToRad(this.rotationAngleRight));
     this.c.translate(-tireHorizontalCenter, -tireVerticalCenter);
 
     xPos = this.x - this.carWidth / 2 - this.tireWidth / 2;
@@ -80,7 +109,7 @@ class Car {
 
     // Rotate the tire
     this.c.translate(tireHorizontalCenter, tireVerticalCenter);
-    this.c.rotate((this.rotationAngle * Math.PI) / 180);
+    this.c.rotate(degToRad(this.rotationAngleLeft));
     this.c.translate(-tireHorizontalCenter, -tireVerticalCenter);
 
     // Draw the tire
@@ -89,7 +118,7 @@ class Car {
 
     // Cancel out the rotation for the next redraw
     this.c.translate(tireHorizontalCenter, tireVerticalCenter);
-    this.c.rotate(-(this.rotationAngle * Math.PI) / 180);
+    this.c.rotate(-degToRad(this.rotationAngleLeft));
     this.c.translate(-tireHorizontalCenter, -tireVerticalCenter);
 
     // Bottom tires axis
@@ -105,7 +134,7 @@ class Car {
     // Top tires axis
     // Based on the rotation of the tire
     // Will always be perpendicular to it
-    if (this.rotationAngle != 0) {
+    if (this.rotationAngleLeft != 0) {
       // Right
       tireHorizontalCenter = this.x + this.carWidth / 2;
       tireVerticalCenter = this.y - this.carLength / 2;
@@ -114,7 +143,7 @@ class Car {
       this.c.moveTo(tireHorizontalCenter, tireVerticalCenter);
       this.c.lineTo(
         tireHorizontalCenter -
-          this.carLength / Math.tan((Math.PI * -this.rotationAngle) / 180),
+          this.carLength / Math.tan((Math.PI * -this.rotationAngleRight) / 180),
         tireVerticalCenter + this.carLength
       );
       this.c.stroke();
@@ -123,11 +152,13 @@ class Car {
       tireVerticalCenter = this.y - this.carLength / 2;
 
       this.c.beginPath();
-      this.c.moveTo(tireHorizontalCenter, tireVerticalCenter);
+      this.c.moveTo(this.tireTopLeft.x, this.tireTopLeft.y);
+      this.topLeftBottomIntersection =
+        this.tireTopLeft.x -
+        this.carLength / Math.tan(degToRad(-this.rotationAngleLeft));
       this.c.lineTo(
-        tireHorizontalCenter -
-          this.carLength / Math.tan((Math.PI * -this.rotationAngle) / 180),
-        tireVerticalCenter + this.carLength
+        this.topLeftBottomIntersection,
+        this.tireTopLeft.y + this.carLength
       );
       this.c.stroke();
     }
@@ -151,7 +182,41 @@ class Car {
     this.c.moveTo(this.x - this.carWidth / 2, this.y - this.carLength / 2);
     this.c.lineTo(this.x + this.carWidth / 2, this.y - this.carLength / 2);
     this.c.stroke();
-    // this.c.setLineDash([5, 10]);
+
+    let test = Math.tan(degToRad(90 - this.rotationAngleLeft)) * this.carLength;
+    this.turningPoint.x = test + this.tireBottomLeft.x;
+    this.turningPoint.y = this.tireBottomLeft.y;
+    this.c.beginPath();
+    this.c.arc(this.turningPoint.x, this.turningPoint.y, 10, 0, 360);
+    this.c.stroke();
+  }
+
+  setRotationAngleRight() {
+    // let distanceToCommonPoint =
+    //   Math.tan(degToRad(90 - this.rotationAngleLeft)) * this.carLength;
+    // this.rotationAngleRight =
+    //   90 -
+    //   radToDeg(
+    //     Math.atan(
+    //       (distanceToCommonPoint +
+    //         (this.tireBottomRight.x - this.tireBottomLeft.x)) /
+    //         this.carLength
+    //     )
+    //   );
+    this.rotationAngleRight =
+      90 -
+      radToDeg(
+        Math.atan((this.tireTopRight.x - this.turningPoint.x) / this.carLength)
+      );
+    this.rotationAngleRight *= -1;
+
+    console.log(
+      this.turningPoint,
+      this.rotationAngleLeft,
+      this.rotationAngleRight
+    );
+    // console.log(this.rotationAngleLeft, this.rotationAngleRight);
+    // this.rotationAngleRight = this.rotationAngleLeft;
   }
 
   handle() {
@@ -160,27 +225,23 @@ class Car {
       switch (e.key) {
         case "w":
           this.y -= distance;
-          // console.log("Move Forwards");
+          this.updateLocations();
           break;
         case "a":
-          // this.x -= distance;
-          if (this.rotationAngle <= -45) return;
-          if (this.rotationAngle == -1) this.rotationAngle = 1;
-          this.rotationAngle -= 15;
-          // this.rotationAngle.toFixed(3);
-          // console.log("Move Left");
+          if (this.rotationAngleLeft <= -45) return;
+          if (this.rotationAngleLeft == -1) this.rotationAngleLeft = 1;
+          this.rotationAngleLeft -= 15;
+          this.setRotationAngleRight();
           break;
         case "s":
           this.y += distance;
-          // console.log("Move Backwards");
+          this.updateLocations();
           break;
         case "d":
-          // this.x += distance;
-          if (this.rotationAngle >= 45) return;
-          if (this.rotationAngle == 1) this.rotationAngle = -1;
-          this.rotationAngle += 15;
-          // this.rotationAngle.toFixed(3);
-          // console.log("Move Right");
+          if (this.rotationAngleLeft >= 45) return;
+          if (this.rotationAngleLeft == 1) this.rotationAngleLeft = -1;
+          this.rotationAngleLeft += 15;
+          this.setRotationAngleRight();
           break;
         default:
           break;
